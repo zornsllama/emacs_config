@@ -1,0 +1,253 @@
+(setq straight-use-package-by-default t)
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+
+(setq recentf-max-saved-items 200
+       recentf-max-menu-items 15)
+(recentf-mode +1)
+
+;; start the initial frame maximized
+ (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+ ;; turn on visual line mode
+ (global-visual-line-mode 1)
+
+ ;; turn off menu bar
+ (menu-bar-mode -1)
+
+ ;; turn off tool bar
+ (tool-bar-mode -1)
+
+ ;; Turn on delete selection mode
+ (delete-selection-mode 1)
+
+ ;; turn on paren match
+ (show-paren-mode 1)
+
+ ;; turn on battery display in mode line
+ (display-battery-mode 1)
+
+ ;; turn on display time mode
+ (display-time-mode 1)
+ (setq display-time-default-load-average nil)
+
+ ;; relative line numbers
+ (setq display-line-numbers-type 'relative)
+
+(put 'dired-find-alternate-file 'disabled nil)
+
+(use-package vertico
+   :init (vertico-mode))
+
+(use-package orderless
+  :ensure t
+  :custom (completion-styles '(orderless)))
+
+(use-package marginalia
+   :init (marginalia-mode))
+
+(use-package consult
+    :bind (
+    ("C-x r f" . consult-recent-file)
+    )
+    :config (
+   consult-customize
+   consult-theme
+   :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref consult-buffer
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+   :preview-key nil
+   )
+)
+
+(defun embark-act-noquit ()
+  "Run action but don't quit the minibuffer afterwards."
+  (interactive)
+  (let ((embark-quit-after-action nil))
+    (embark-act)))
+
+(use-package embark
+     :bind
+     (("C-;" . embark-act)         ;; pick some comfortable binding
+     ("C-h B" . embark-bindings)
+     ("C-:" . embark-act-noquit)) ;; alternative for `describe-bindings'
+     :config
+     ; set up so that C-: k behaves exactly like ivy-kill-buffer C-k
+     (setq embark-allow-edit-actions (remove `kill-buffer embark-allow-edit-actions))
+)
+
+(use-package embark-consult
+      :after (embark consult))
+
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  :config
+  (evil-mode 1)
+  )
+
+(use-package evil-tutor)
+
+(add-hook 'evil-normal-state-entry-hook (lambda () (display-line-numbers-mode 1)))
+(add-hook 'evil-emacs-state-entry-hook (lambda () (display-line-numbers-mode -1)))
+(add-hook 'evil-emacs-state-exit-hook (lambda () (display-line-numbers-mode 1)))
+;;(evil-set-initial-state 'vterm-mode 'emacs)
+;;(evil-set-initial-state 'jupyter-repl-mode 'emacs)
+;;(evil-set-initial-state 'special-mode 'emacs)
+
+(evil-define-key 'normal org-mode-map (kbd "TAB") 'org-cycle)
+(evil-global-set-key 'normal (kbd "C-e") 'end-of-visual-line)
+(evil-define-key 'motion dired-mode-map (kbd "TAB") 'dired-subtree-toggle)
+;;(evil-global-set-key 'insert (kbd "C-e") 'end-of-visual-line)
+;;(evil-global-set-key 'insert (kbd "C-a") 'beginning-of-visual-line)
+
+(use-package evil-collection
+  :after evil
+  :init (evil-collection-init))
+
+(use-package texfrag
+   :init (texfrag-global-mode 1))
+
+;; Recent ghostscript binary needed to color LaTeX blocks appropriately; download this manually if necessary.
+(setq preview-gs-command "/home/sameer/binaries/ghostscript-9.55.0-linux-x86_64/gs-9550-linux-x86_64")
+
+(use-package cdlatex)
+(add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+
+(straight-use-package
+   '(math-delimiters :type git :host github :repo "oantolin/math-delimiters"))
+
+  (autoload 'math-delimiters-insert "math-delimiters")
+
+(with-eval-after-load 'org
+  (define-key org-mode-map "$" #'math-delimiters-insert))
+
+(with-eval-after-load 'tex              ; for AUCTeX
+  (define-key TeX-mode-map "$" #'math-delimiters-insert))
+
+(with-eval-after-load 'tex-mode         ; for the built-in TeX/LaTeX modes
+  (define-key tex-mode-map "$" #'math-delimiters-insert))
+
+(with-eval-after-load 'cdlatex
+  (define-key cdlatex-mode-map "$" nil))
+
+(use-package all-the-icons)
+
+(straight-use-package
+    '(all-the-icons-dired :type git :host github :repo "jtbm37/all-the-icons-dired"))
+(load "all-the-icons-dired.el")
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+
+(use-package all-the-icons-completion)
+(all-the-icons-completion-mode)
+(add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup)
+
+(use-package yasnippet
+   :config
+   (setq yas-snippet-dirs (list (concat user-emacs-directory "snippets")))
+   (yas-global-mode 1)
+)
+
+(require 'warnings)
+(add-to-list 'warning-suppress-types '(yasnippet backquote-change))
+
+(use-package undo-tree
+  :config
+  (global-undo-tree-mode)
+  (evil-set-undo-system 'undo-tree))
+
+(use-package ace-window
+    :config
+    (global-set-key (kbd "M-o") 'ace-window)
+)
+
+(use-package pdf-tools
+ :config
+ ;; initialise
+ (pdf-tools-install)
+ ;; open pdfs scaled to fit page
+ (setq-default pdf-view-display-size 'fit-page)
+ ;; automatically annotate highlights
+ (setq pdf-annot-activate-created-annotations t)
+ ;; use normal isearch
+ (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
+
+(use-package vterm
+  :config (setq vterm-timer-delay nil))
+
+(use-package julia-snail)
+
+;; Julia snail and company hooks
+(add-hook 'julia-mode-hook #'julia-snail-mode)
+
+;; Snail multimedia mode
+(setq-default julia-snail-multimedia-enable t)
+
+(setq-default julia-snail-extra-args '("--sysimage=/home/sameer/Documents/Julia/jlsys.so" "--threads auto"))
+
+(use-package perspective
+  :straight (:host github :repo "nex3/perspective-el")
+  :bind (
+  ("C-x b" . persp-switch-to-buffer*)
+  ("C-x k" . persp-kill-buffer*)
+  )
+  :config
+  (persp-mode)
+)
+
+(use-package dired-subtree
+  :after dired
+  :bind (:map dired-mode-map
+              ("TAB" . dired-subtree-toggle)))
+
+(use-package diredfl
+  :config (diredfl-global-mode))
+
+(setq dired-kill-when-opening-new-dired-buffer t)
+(setq delete-by-moving-to-trash t)
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1))
+
+(use-package ewal-doom-themes)
+
+(use-package kaolin-themes)
+
+(use-package heaven-and-hell
+  :init
+  (setq heaven-and-hell-theme-type 'dark) ;; Omit to use light by default
+  (setq heaven-and-hell-themes
+	'((light . doom-acario-light)
+	  (dark . doom-ir-black))) ;; Themes can be the list: (dark . (tsdh-dark wombat))
+  ;; Optionall, load themes without asking for confirmation.
+  (setq heaven-and-hell-load-theme-no-confirm t)
+  :hook (after-init . heaven-and-hell-init-hook)
+  :bind (("C-c <f6>" . heaven-and-hell-load-default-theme)
+	 ("<f6>" . heaven-and-hell-toggle-theme)))
+
+(setq org-startup-folded t)
+
+(use-package org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+(setq org-latex-compiler "xelatex")
+
+(setq org-pretty-entities t)
+(setq org-pretty-entities-include-sub-superscripts nil)
+
+(setq org-support-shift-select t)

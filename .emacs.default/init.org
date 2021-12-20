@@ -1,0 +1,439 @@
+#+TITLE: Emacs configuration
+#+PROPERTY: header-args :tangle yes
+
+* Setup for Straight.el and use-package
+** Set use-package to employ Straight as package manager by default
+
+#+begin_src emacs-lisp
+(setq straight-use-package-by-default t)
+#+end_src
+
+** Bootstrap code to install Straight.el as package manager
+
+#+begin_src emacs-lisp
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+#+end_src
+
+** Install use-package using Straight.el
+
+#+begin_src emacs-lisp
+(straight-use-package 'use-package)
+#+end_src
+
+* General tweaks
+** Configure recentf
+
+#+begin_src emacs-lisp
+  (setq recentf-max-saved-items 200
+	 recentf-max-menu-items 15)
+  (recentf-mode +1)
+
+#+end_src
+
+** Miscellaneous
+
+#+begin_src emacs-lisp
+  ;; start the initial frame maximized
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+  ;; turn on visual line mode
+  (global-visual-line-mode 1)
+
+  ;; turn off menu bar
+  (menu-bar-mode -1)
+
+  ;; turn off tool bar
+  (tool-bar-mode -1)
+
+  ;; Turn on delete selection mode
+  (delete-selection-mode 1)
+
+  ;; turn on paren match
+  (show-paren-mode 1)
+
+  ;; turn on battery display in mode line
+  (display-battery-mode 1)
+
+  ;; turn on display time mode
+  (display-time-mode 1)
+  (setq display-time-default-load-average nil)
+
+  ;; relative line numbers
+  (setq display-line-numbers-type 'relative)
+
+ (put 'dired-find-alternate-file 'disabled nil)
+
+#+end_src
+
+* Package configurations
+** Emacs interface enhancements
+*** Vertico
+
+#+begin_src emacs-lisp
+  (use-package vertico
+     :init (vertico-mode))
+#+end_src
+
+*** Orderless
+
+#+begin_src emacs-lisp
+(use-package orderless
+  :ensure t
+  :custom (completion-styles '(orderless)))
+#+end_src
+
+*** Marginalia
+
+#+begin_src emacs-lisp
+  (use-package marginalia
+     :init (marginalia-mode))
+#+end_src
+
+*** Consult
+
+#+begin_src emacs-lisp
+  (use-package consult
+      :bind (
+      ("C-x r f" . consult-recent-file)
+      )
+      :config (
+     consult-customize
+     consult-theme
+     :preview-key '(:debounce 0.2 any)
+     consult-ripgrep consult-git-grep consult-grep
+     consult-bookmark consult-recent-file consult-xref consult-buffer
+     consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+     :preview-key nil
+     )
+  )
+#+end_src
+
+#+RESULTS:
+: consult-recent-file
+
+*** Embark
+
+#+begin_src emacs-lisp
+  (defun embark-act-noquit ()
+    "Run action but don't quit the minibuffer afterwards."
+    (interactive)
+    (let ((embark-quit-after-action nil))
+      (embark-act)))
+
+  (use-package embark
+       :bind
+       (("C-;" . embark-act)         ;; pick some comfortable binding
+       ("C-h B" . embark-bindings)
+       ("C-:" . embark-act-noquit)) ;; alternative for `describe-bindings'
+       :config
+       ; set up so that C-: k behaves exactly like ivy-kill-buffer C-k
+       (setq embark-allow-edit-actions (remove `kill-buffer embark-allow-edit-actions))
+  )
+
+  (use-package embark-consult
+	:after (embark consult))
+#+end_src
+
+** Evil mode
+
+#+begin_src emacs-lisp
+  (use-package evil
+    :init
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    :config
+    (evil-mode 1)
+    )
+
+  (use-package evil-tutor)
+
+  (add-hook 'evil-normal-state-entry-hook (lambda () (display-line-numbers-mode 1)))
+  (add-hook 'evil-emacs-state-entry-hook (lambda () (display-line-numbers-mode -1)))
+  (add-hook 'evil-emacs-state-exit-hook (lambda () (display-line-numbers-mode 1)))
+  ;;(evil-set-initial-state 'vterm-mode 'emacs)
+  ;;(evil-set-initial-state 'jupyter-repl-mode 'emacs)
+  ;;(evil-set-initial-state 'special-mode 'emacs)
+
+  (evil-define-key 'normal org-mode-map (kbd "TAB") 'org-cycle)
+  (evil-global-set-key 'normal (kbd "C-e") 'end-of-visual-line)
+  (evil-define-key 'motion dired-mode-map (kbd "TAB") 'dired-subtree-toggle)
+  ;;(evil-global-set-key 'insert (kbd "C-e") 'end-of-visual-line)
+  ;;(evil-global-set-key 'insert (kbd "C-a") 'beginning-of-visual-line)
+
+  (use-package evil-collection
+    :after evil
+    :init (evil-collection-init))
+
+#+end_src
+
+#+RESULTS:
+
+** LaTeX tweaks
+*** Texfrag
+
+#+begin_src emacs-lisp
+  (use-package texfrag
+     :init (texfrag-global-mode 1))
+
+  ;; Recent ghostscript binary needed to color LaTeX blocks appropriately; download this manually if necessary.
+  (setq preview-gs-command "/home/sameer/binaries/ghostscript-9.55.0-linux-x86_64/gs-9550-linux-x86_64")
+
+#+end_src
+
+*** CDLatex
+
+#+begin_src emacs-lisp
+  (use-package cdlatex)
+  (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+#+end_src
+
+*** Math-delimiters
+
+#+begin_src emacs-lisp
+  (straight-use-package
+   '(math-delimiters :type git :host github :repo "oantolin/math-delimiters"))
+
+  (autoload 'math-delimiters-insert "math-delimiters")
+
+(with-eval-after-load 'org
+  (define-key org-mode-map "$" #'math-delimiters-insert))
+
+(with-eval-after-load 'tex              ; for AUCTeX
+  (define-key TeX-mode-map "$" #'math-delimiters-insert))
+
+(with-eval-after-load 'tex-mode         ; for the built-in TeX/LaTeX modes
+  (define-key tex-mode-map "$" #'math-delimiters-insert))
+
+(with-eval-after-load 'cdlatex
+  (define-key cdlatex-mode-map "$" nil))
+
+#+end_src
+
+** All the icons
+
+#+begin_src emacs-lisp
+  (use-package all-the-icons)
+
+  (straight-use-package
+      '(all-the-icons-dired :type git :host github :repo "jtbm37/all-the-icons-dired"))
+  (load "all-the-icons-dired.el")
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+
+  (use-package all-the-icons-completion)
+  (all-the-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup)
+#+end_src
+
+#+RESULTS:
+| all-the-icons-completion-marginalia-setup |
+
+** Yasnippet
+
+#+begin_src emacs-lisp
+  (use-package yasnippet
+     :config
+     (setq yas-snippet-dirs (list (concat user-emacs-directory "snippets")))
+     (yas-global-mode 1)
+  )
+
+  (require 'warnings)
+  (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
+#+end_src
+
+** Undo tree
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :config
+    (global-undo-tree-mode)
+    (evil-set-undo-system 'undo-tree))
+#+end_src
+
+#+RESULTS:
+: t
+
+** Ace-window
+#+begin_src emacs-lisp
+(use-package ace-window
+    :config
+    (global-set-key (kbd "M-o") 'ace-window)
+)
+#+end_src
+
+** PDFTools
+
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+   :config
+   ;; initialise
+   (pdf-tools-install)
+   ;; open pdfs scaled to fit page
+   (setq-default pdf-view-display-size 'fit-page)
+   ;; automatically annotate highlights
+   (setq pdf-annot-activate-created-annotations t)
+   ;; use normal isearch
+   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
+
+
+
+#+end_src
+
+** Vterm
+
+#+begin_src emacs-lisp
+    (use-package vterm
+      :config (setq vterm-timer-delay nil))
+#+end_src
+
+** Julia snail
+
+#+begin_src emacs-lisp
+  (use-package julia-snail)
+  
+  ;; Julia snail and company hooks
+  (add-hook 'julia-mode-hook #'julia-snail-mode)
+  
+  ;; Snail multimedia mode
+  (setq-default julia-snail-multimedia-enable t)
+  
+  (setq-default julia-snail-extra-args '("--sysimage=/home/sameer/Documents/Julia/jlsys.so" "--threads auto"))
+#+end_src
+
+** Perspective
+
+#+begin_src emacs-lisp
+  (use-package perspective
+    :straight (:host github :repo "nex3/perspective-el")
+    :bind (
+    ("C-x b" . persp-switch-to-buffer*)
+    ("C-x k" . persp-kill-buffer*)
+    )
+    :config
+    (persp-mode)
+  )
+
+#+end_src
+
+#+RESULTS:
+: persp-kill-buffer*
+
+** Dired tweaks
+*** Dired-subtree
+
+#+begin_src emacs-lisp
+
+(use-package dired-subtree
+  :after dired
+  :bind (:map dired-mode-map
+              ("TAB" . dired-subtree-toggle)))
+
+#+end_src
+
+*** Diredfl
+#+begin_src emacs-lisp
+  (use-package diredfl
+    :config (diredfl-global-mode))
+#+end_src
+
+#+RESULTS:
+: t
+
+*** Miscellaneous
+
+#+begin_src emacs-lisp
+  (setq dired-kill-when-opening-new-dired-buffer t)
+  (setq delete-by-moving-to-trash t)
+#+end_src
+
+#+RESULTS:
+: t
+
+* Theming
+** Doom modeline
+
+#+begin_src emacs-lisp :lexical no
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1))
+#+end_src
+
+** Doom themes
+
+#+begin_src emacs-lisp
+ (use-package ewal-doom-themes)
+#+end_src
+
+** Kaolin-themes
+
+#+begin_src emacs-lisp
+(use-package kaolin-themes)
+#+end_src
+
+** Heaven and hell
+
+#+begin_src emacs-lisp :lexical no
+  (use-package heaven-and-hell
+    :init
+    (setq heaven-and-hell-theme-type 'dark) ;; Omit to use light by default
+    (setq heaven-and-hell-themes
+	  '((light . doom-acario-light)
+	    (dark . doom-ir-black))) ;; Themes can be the list: (dark . (tsdh-dark wombat))
+    ;; Optionall, load themes without asking for confirmation.
+    (setq heaven-and-hell-load-theme-no-confirm t)
+    :hook (after-init . heaven-and-hell-init-hook)
+    :bind (("C-c <f6>" . heaven-and-hell-load-default-theme)
+	   ("<f6>" . heaven-and-hell-toggle-theme)))
+#+end_src
+
+#+RESULTS:
+: heaven-and-hell-toggle-theme
+
+* Org mode configuration
+** Folded headers when opening org file
+
+#+begin_src emacs-lisp
+  (setq org-startup-folded t)
+#+end_src
+
+** Org-bullets
+
+#+begin_src emacs-lisp
+  (use-package org-bullets)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+#+end_src
+
+** Set org-latex-compiler
+
+#+begin_src emacs-lisp
+(setq org-latex-compiler "xelatex")
+#+end_src
+
+** Org pretty symbols
+
+#+begin_src emacs-lisp
+  (setq org-pretty-entities t)
+  (setq org-pretty-entities-include-sub-superscripts nil)
+#+end_src
+
+** Support shift-select
+
+#+begin_src emacs-lisp
+(setq org-support-shift-select t)
+#+end_src
+
+#+RESULTS:
+: t
+
+
+
+
+
