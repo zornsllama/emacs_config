@@ -1,0 +1,65 @@
+\ProvidesPackage{kailasa}
+
+\documentclass{amsart}
+\usepackage[margin=1in]{geometry}
+
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{enumerate}
+\usepackage{booktabs}
+\usepackage{titling}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+\usepackage{titling}
+
+% Title stuff
+
+\titlelabel{\thetitle.\quad}
+
+% Header and footer
+
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+\pagestyle{fancy}
+\lhead{\sc\large\@title}
+\cfoot{Page \thepage\,\,of \pageref{LastPage} }
+\renewcommand{\footrulewidth}{0.04em}
+
+% theorem envs
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem*{theorem*}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem*{corollary*}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem*{problem*}{Problem}
+\newtheorem{example}[theorem]{Example}
+\newtheorem*{example*}{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% commands
+
+\newcommand\E{\mathbf {E}}
+\newcommand\P{\mathbf {P}}
+\newcommand\EE{\mathbb {E}}
+\newcommand\PP{\mathbb {P}}
+
+\def\C{\mathbb C}
+\def\N{\mathbb N}
+\def\Q{\mathbb Q}
+\def\R{\mathbb R}
+\def\Z{\mathbb Z}
