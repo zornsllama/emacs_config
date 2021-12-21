@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: default header template for latex export
+# key: <tx
+# --
+
+#+title: ${1:_title_}
+#+author: Sameer Kailasa
+#+date: `(format-time-string "%D")`
+:properties:
+#+latex_header: \usepackage{/home/sameer/org/org-latex-kailasa}
+#+options: toc:nil ^:nil
+:end: `(progn (org-hide-drawer-toggle) ())`
+
+$0

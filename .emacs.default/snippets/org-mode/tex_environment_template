@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: latex environment babel block
+# key: <ex
+# --
+
+#+attr_latex: :environment ${1:_environment_}
+#+begin_$1
+$0
+#+end_$1

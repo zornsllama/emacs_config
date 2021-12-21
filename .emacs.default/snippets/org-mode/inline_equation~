@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: inline equation 
+# key: inline_eq
+# --
+
+\\( $1 \\) $0

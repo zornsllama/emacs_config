@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: org src block -- generic language
+# key: <s
+# --
+
+#+begin_src {$1:language}
+$0
+#+end_src

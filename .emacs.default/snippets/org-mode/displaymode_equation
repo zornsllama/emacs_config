@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: displaymode equation 
+# key: display_eq
+# --
+`(newline)`\\[
+$1
+\\]
+$0
